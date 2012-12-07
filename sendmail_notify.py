@@ -85,6 +85,7 @@ def send_message(data, signal, signal_data):
     """Callback called when highlight or private message is received.
        Creates an email and uses subprocess to call sendmail to send it.
     """
+    weechat.prnt('', 'ALL HAIL HYPNOTOAD')
     msg = MIMEText(signal_data)
     msg['From'] = config['from']
     msg['To'] = config['to']

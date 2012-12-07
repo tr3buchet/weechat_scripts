@@ -77,8 +77,8 @@ for option, default_value in config.iteritems():
 # setup hooks
 weechat.hook_signal('weechat_highlight', 'send_message', '')
 weechat.hook_signal('weechat_pv', 'send_message', '')
-weechat.hook_config("plugins.var.python.sendmail_notify.*",
-                    "config_callback", "")
+weechat.hook_config('plugins.var.python.sendmail_notify.*',
+                    'config_callback', '')
 
 
 def send_message(data, signal, signal_data):
@@ -103,6 +103,7 @@ def config_callback(data, option, value):
        Stores the config value so it can be retrieved locally when sending
        messages. (may be an unnecessary optimization)
     """
+    weechat.prnt('', 'updating some values')
     option = option.split('.')[-1]
     config[option] = value
     return weechat.WEECHAT_RC_OK

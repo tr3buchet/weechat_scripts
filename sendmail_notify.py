@@ -24,10 +24,12 @@ config = {
 }
 
 for option, value in config.iteritems():
-    if weechat.config_is_set_plugin(option):
-        config[option] = weechat.config_get_plugin(option)
+    config_value = weechat.config_get_plugin(option)
+    if config_value:
+        config[option] = config_value
     else:
-        weechat.config_set_plugin(option, value)
+        weechat.prnt('', weechat.prefix('error') + 'sendmail_notify: '
+                     'please set option |%s|' % option)
 
 
 # setup hooks

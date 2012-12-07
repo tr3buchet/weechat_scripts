@@ -11,11 +11,10 @@ from email.mime.text import MIMEText
 from subprocess import Popen, PIPE
 
 # register script
-weechat.register("sendmail_notify", "FlashCode", "1.0", "GPL3", "Test script", "", "")
-#weechat.register('sendmail_notify', 'Trey Morris', '1.0',
-#                 'Some License',
-#                 'sendmail_notify: send notifications using sendmail'
-#                 '', '')
+weechat.register('sendmail_notify', 'Trey Morris', '1.0',
+                 'Some License',
+                 'sendmail_notify: send notifications using sendmail',
+                 '', '')
 
 # config setup
 config = {
@@ -27,8 +26,15 @@ config = {
 for option, value in config.iteritems():
     config_value = weechat.config_get_plugin(option)
     if config_value:
+        # the value is set in weechat config, store it here
         config[option] = config_value
+    elif value:
+        # the value in weechat config is invalid,
+        # if script has a default, use that
+        weechat.config_set_plugin(option, value)
     else:
+        # value in weechat config is invalid,
+        # and there is no default set in the script
         weechat.prnt('', weechat.prefix('error') + 'sendmail_notify: '
                      'please set option |%s|' % option)
 

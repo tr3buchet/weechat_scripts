@@ -89,6 +89,9 @@ def send_message(data, signal, signal_data):
     msg['From'] = config['from']
     msg['To'] = config['to']
     msg['Subject'] = signal
+    weechat.prnt('', weechat.prefix('debug') + 'sendmail_notify: '
+                 'sending |%s|%s|%s|%s|' % (config['from'], config['to'],
+                                            signal, signal_data))
     p = Popen(['/usr/sbin/sendmail', '-t'], stdin=PIPE)
     p.communicate(msg.as_string())
 

@@ -23,18 +23,17 @@ config = {
     'from': '',
 }
 
-for option, value in config.iteritems():
+for option, default_value in config.iteritems():
     config_value = weechat.config_get_plugin(option)
     if config_value:
-        # the value is set in weechat config, store it here
+        # value is set in weechat config, store it here
         config[option] = config_value
-    elif value:
-        # the value in weechat config is invalid,
-        # if script has a default, use that
-        weechat.config_set_plugin(option, value)
     else:
-        # value in weechat config is invalid,
-        # and there is no default set in the script
+        # value isn't set in weechat config, set config value from defaults
+        weechat.config_set_plugin(option, default_value)
+
+    # warn if value isn't valid
+    if not config.get(option):
         weechat.prnt('', weechat.prefix('error') + 'sendmail_notify: '
                      'please set option |%s|' % option)
 

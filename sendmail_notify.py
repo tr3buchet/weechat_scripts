@@ -11,10 +11,11 @@ from email.mime.text import MIMEText
 from subprocess import Popen, PIPE
 
 # register script
-weechat.register('sendmail_notify', 'Trey Morris', '1.0',
-                 'Some License',
-                 'sendmail_notify: send notifications using sendmail'
-                 '', '')
+weechat.register("sendmail_notify", "FlashCode", "1.0", "GPL3", "Test script", "", "")
+#weechat.register('sendmail_notify', 'Trey Morris', '1.0',
+#                 'Some License',
+#                 'sendmail_notify: send notifications using sendmail'
+#                 '', '')
 
 # config setup
 config = {

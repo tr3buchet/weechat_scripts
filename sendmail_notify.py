@@ -59,5 +59,6 @@ def send_message(data, signal, signal_data):
 
 def config_callback(data, option, value):
     """Callback called when a script option is changed."""
+    option = option.split('.')[-1]
     weechat.prnt('', 'config callback |%s|%s|%s|' % (data, option, value))
     return weechat.WEECHAT_RC_OK

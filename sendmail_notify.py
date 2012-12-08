@@ -98,7 +98,7 @@ def send_message(data, signal, signal_data):
         return weechat.WEECHAT_RC_OK
 
     # what about away state?
-    if config.get('only_away') == 'on':
+    if config.get('only_when_away') == 'on':
         away = weechat.buffer_get_string('localvar_away')
         debug_msg('away state |%s|' % away)
 

@@ -74,8 +74,7 @@ for option, default_value in config.iteritems():
 
     # warn if value isn't valid
     if not config.get(option):
-        weechat.prnt('', weechat.prefix('error') + 'sendmail_notify: '
-                     'please set option |%s|' % option)
+        weechat.prnt('', 'sendmail_notify:i please set option |%s|' % option)
 
 
 # setup hooks
@@ -87,7 +86,7 @@ weechat.hook_config('plugins.var.python.sendmail_notify.*',
 
 def debug_msg(msg):
     if config.get('debug') == 'on':
-        weechat.prnt('', weechat.prefix('debug') + 'sendmail_notify: ' + msg)
+        weechat.prnt('', 'sendmail_notify: ' + msg)
 
 
 def send_message(data, signal, signal_data):
@@ -95,11 +94,11 @@ def send_message(data, signal, signal_data):
        Creates an email and uses subprocess to call sendmail to send it.
     """
     # return if not enabled
-    if not config.get('enabled'):
+    if not config.get('enabled') == 'on':
         return weechat.WEECHAT_RC_OK
 
     # what about away state?
-    if config.get('only_away'):
+    if config.get('only_away') == 'on':
         away = weechat.buffer_get_string('localvar_away')
         debug_msg('away state |%s|' % away)
 

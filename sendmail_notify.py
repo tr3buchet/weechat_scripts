@@ -34,6 +34,7 @@ Options
     plugins.var.python.sendmail_notify.from
 
         The email address the message will be from.
+        NOTE: some providers override this: ex gmail
         Default: ''
 
     plugins.var.python.sendmail_notify.to
@@ -57,6 +58,9 @@ config = {
     'sendmail_location': '/usr/sbin/sendmail',
     'to': '',
     'from': '',
+    'debug': 'off',
+    'only_when_away': 'on',
+    'enabled': 'on',
 }
 
 for option, default_value in config.iteritems():
@@ -81,21 +85,33 @@ weechat.hook_config('plugins.var.python.sendmail_notify.*',
                     'config_callback', '')
 
 
+def debug_msg(msg):
+    if config.get('debug') == 'on':
+        weechat.prnt('', weechat.prefix('debug') + 'sendmail_notify: ' + msg)
+
+
 def send_message(data, signal, signal_data):
     """Callback called when highlight or private message is received.
        Creates an email and uses subprocess to call sendmail to send it.
     """
-    weechat.prnt('', 'ALL HAIL HYPNOTOAD')
+    # return if not enabled
+    if not config.get('enabled'):
+        return weechat.WEECHAT_RC_OK
+
+    # what about away state?
+    if config.get('only_away'):
+        away = weechat.buffer_get_string('localvar_away')
+        debug_msg('away state |%s|' % away)
+
     msg = MIMEText(signal_data)
     msg['From'] = config['from']
     msg['To'] = config['to']
     msg['Subject'] = signal
-    weechat.prnt('', weechat.prefix('debug') + 'sendmail_notify: '
-                 'sending |%s|%s|%s|%s|' % (config['from'], config['to'],
-                                            signal, signal_data))
     p = Popen(['/usr/sbin/sendmail', '-t'], stdin=PIPE)
     p.communicate(msg.as_string())
 
+    debug_msg('sent |%s|%s|%s|%s|' % (config['from'], config['to'],
+                                      signal, signal_data))
     return weechat.WEECHAT_RC_OK
 
 
@@ -104,7 +120,8 @@ def config_callback(data, option, value):
        Stores the config value so it can be retrieved locally when sending
        messages. (may be an unnecessary optimization)
     """
-    weechat.prnt('', 'updating some values')
+
     option = option.split('.')[-1]
     config[option] = value
+    debug_msg('updating config option |%s| to |%s|' % (option, value))
     return weechat.WEECHAT_RC_OK

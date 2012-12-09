@@ -79,8 +79,6 @@ for option, default_value in config.iteritems():
 
 
 # setup hooks
-#weechat.hook_signal('weechat_highlight', 'send_message', '')
-#weechat.hook_signal('weechat_pv', 'send_message', '')
 weechat.hook_print('', '', '', 1, 'send_message', '')
 weechat.hook_config('plugins.var.python.sendmail_notify.*',
                     'update_config', '')
@@ -104,32 +102,28 @@ def is_ping(buffer_type, highlight):
     return False
 
 
-#def send_message(data, signal, signal_data):
 def send_message(data, msg_buffer, date, tags,
                  displayed, highlight, prefix, message):
     """Callback called when highlight or private message is received.
        Creates an email and uses subprocess to call sendmail to send it.
-       
+
        args:
            data: appears to always be empty
            msg_buffer: an id of the buffer message was printed on
-           date: 
+           date: date timestamp
+           tags: contains tags about the message
+           displayed: '1' means yes, '0' means no
+           highlight: '1' if it's a highlighted messagea, '0' otherwise
+           prefix: for normal messages, the nick of the sender
+           message: the text portion of what the sender sent
 
     """
-    import time
-    debug_msg('data: |%s|' % data)
-    debug_msg('msg_buffer: |%s|' % msg_buffer)
-    debug_msg('date: |%s|%s|' % (date, time.time()))
-    debug_msg('tags: |%s|' % tags)
-    debug_msg('displayed: |%s|' % displayed)
-    debug_msg('highlight: |%s|' % highlight)
-    debug_msg('prefix: |%s|' % prefix)
-    debug_msg('message: |%s|' % message)
-    debug_msg('type: |%s|' % weechat.buffer_get_string(msg_buffer, 'localvar_type'))
-    return weechat.WEECHAT_RC_OK
-
     # return if not enabled
     if not config['enabled'] == 'on':
+        return weechat.WEECHAT_RC_OK
+
+    # return if message not displayed
+    if displayed == '0':
         return weechat.WEECHAT_RC_OK
 
     # query for extra data
@@ -147,17 +141,15 @@ def send_message(data, msg_buffer, date, tags,
 
     # return unless this was a ping of some sort
     if not is_ping(buffer_type, highlight):
+        debug_msg('not a a ping, not sending message')
         return weechat.WEECHAT_RC_OK
 
-
     # create message body/subject
-    line = message.split('\t')
-    msg_from = line[0]
-    if signal == 'weechat_pv':
-        body = '%s %s' % (server, ': '.join(line))
-        subject = 'private message from %s' % msg_from
-    elif signal == 'weechat_highlight':
-        body = ': '.join(line)
+    if buffer_type == 'private':
+        body = '%s %s: %s' % (server, prefix, message)
+        subject = 'private message from %s' % prefix
+    elif buffer_type == 'channel':
+        body = '%s: %s' % (prefix, message)
         subject = 'pinged in %s.%s' % (server, channel)
 
     # send mail

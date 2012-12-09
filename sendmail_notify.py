@@ -91,9 +91,17 @@ def debug_msg(msg):
         weechat.prnt('', 'sendmail_notify: ' + msg)
 
 
-def get_buffer_data(buffer, keys):
-    return dict((key, weechat.buffer_get_string(buffer, 'localvar_' + key))
-                for key in keys)
+def is_ping(buffer_type, highlight):
+    """Determine if a message was a ping
+       private type = ping
+       channel type AND highlight = ping
+       anything else != ping
+    """
+    if buffer_type == 'private':
+        return True
+    if buffer_type == 'channel' and highlight == '1':
+        return True
+    return False
 
 
 #def send_message(data, signal, signal_data):
@@ -101,10 +109,17 @@ def send_message(data, msg_buffer, date, tags,
                  displayed, highlight, prefix, message):
     """Callback called when highlight or private message is received.
        Creates an email and uses subprocess to call sendmail to send it.
+       
+       args:
+           data: appears to always be empty
+           msg_buffer: an id of the buffer message was printed on
+           date: 
+
     """
+    import time
     debug_msg('data: |%s|' % data)
     debug_msg('msg_buffer: |%s|' % msg_buffer)
-    debug_msg('date: |%s|' % date)
+    debug_msg('date: |%s|%s|' % (date, time.time())
     debug_msg('tags: |%s|' % tags)
     debug_msg('displayed: |%s|' % displayed)
     debug_msg('highlight: |%s|' % highlight)
@@ -117,14 +132,23 @@ def send_message(data, msg_buffer, date, tags,
     if not config['enabled'] == 'on':
         return weechat.WEECHAT_RC_OK
 
-    buffer_data = get_buffer_data(msg_buffer,
-                                  ['server', 'channel', 'away', 'type'])
+    # query for extra data
+    server = weechat.buffer_get_string(msg_buffer, 'localvar_server')
+    channel = weechat.buffer_get_string(msg_buffer, 'localvar_channel')
+    away_msg = weechat.buffer_get_string(msg_buffer, 'localvar_away')
+    buffer_type = weechat.buffer_get_string(msg_buffer, 'localvar_type')
 
     # return if only_when_away is on and we aren't away
     if config['only_when_away'] == 'on':
-        if not buffer_data['away']:
+        if not away_msg:
+            # away message is empty, this means we are not away
             debug_msg('not away, not sending message')
             return weechat.WEECHAT_RC_OK
+
+    # return unless this was a ping of some sort
+    if not is_ping(buffer_type, highlight):
+        return weechat.WEECHAT_RC_OK
+
 
     # create message body/subject
     line = message.split('\t')

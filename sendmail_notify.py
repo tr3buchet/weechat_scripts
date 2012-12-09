@@ -74,42 +74,59 @@ for option, default_value in config.iteritems():
         weechat.config_set_plugin(option, default_value)
 
     # warn if value isn't valid
-    if not config.get(option):
+    if not config[option]:
         weechat.prnt('', 'sendmail_notify:i please set option |%s|' % option)
 
 
 # setup hooks
-weechat.hook_signal('weechat_highlight', 'send_message', '')
-weechat.hook_signal('weechat_pv', 'send_message', '')
+#weechat.hook_signal('weechat_highlight', 'send_message', '')
+#weechat.hook_signal('weechat_pv', 'send_message', '')
+weechat.hook_print('', '', '', 1, 'send_message', '')
 weechat.hook_config('plugins.var.python.sendmail_notify.*',
                     'update_config', '')
 
 
 def debug_msg(msg):
-    if config.get('debug') == 'on':
+    if config['debug'] == 'on':
         weechat.prnt('', 'sendmail_notify: ' + msg)
 
 
-def send_message(data, signal, signal_data):
+def get_buffer_data(buffer, keys):
+    return dict((key, weechat.buffer_get_string(buffer, 'localvar_' + key))
+                for key in keys)
+
+
+#def send_message(data, signal, signal_data):
+def send_message(data, msg_buffer, date, tags_count, tags,
+                 displayed, highlight, prefix, message):
     """Callback called when highlight or private message is received.
        Creates an email and uses subprocess to call sendmail to send it.
     """
+    debug_msg('data: |%s|' % data)
+    debug_msg('msg_buffer: |%s|' % msg_buffer)
+    debug_msg('date: |%s|' % date)
+    debug_msg('tags: |%s|' % tags)
+    debug_msg('displayed: |%s|' % displayed)
+    debug_msg('highlight: |%s|' % highlight)
+    debug_msg('prefix: |%s|' % prefix)
+    debug_msg('message: |%s|' % message)
+    return weechat.WEECHAT_RC_OK
+
     # return if not enabled
-    if not config.get('enabled') == 'on':
+    if not config['enabled'] == 'on':
         return weechat.WEECHAT_RC_OK
 
+    buffer_data = get_buffer_data(msg_buffer,
+                                  ['server', 'channel', 'away', 'type'])
+
     # return if only_when_away is on and we aren't away
-    current_buffer = weechat.current_buffer()
-    if config.get('only_when_away') == 'on':
-        away = weechat.buffer_get_string(current_buffer, 'localvar_away')
-        if not away:
+    if config['only_when_away'] == 'on':
+        if not buffer_data['away']:
             debug_msg('not away, not sending message')
             return weechat.WEECHAT_RC_OK
 
     # create message body/subject
-    server = weechat.buffer_get_string(current_buffer, 'localvar_server')
-    channel = weechat.buffer_get_string(current_buffer, 'localvar_channel')
-    line = signal_data.split('\t')
+    line = message.split('\t')
     msg_from = line[0]
     if signal == 'weechat_pv':
         body = '%s %s' % (server, ': '.join(line))

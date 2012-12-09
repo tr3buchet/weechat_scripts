@@ -97,7 +97,7 @@ def get_buffer_data(buffer, keys):
 
 
 #def send_message(data, signal, signal_data):
-def send_message(data, msg_buffer, date, tags_count, tags,
+def send_message(data, msg_buffer, date, tags,
                  displayed, highlight, prefix, message):
     """Callback called when highlight or private message is received.
        Creates an email and uses subprocess to call sendmail to send it.

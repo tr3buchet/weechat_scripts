@@ -103,10 +103,7 @@ def send_message(data, signal, signal_data):
         away = weechat.buffer_get_string('localvar_away')
         debug_msg('away state |%s|' % away)
 
-    separator = weechat.config_get('weechat.look.prefix_suffix')
-    separator = weechat.config_string(separator)
-    line = list(signal_data)
-    weechat.prnt('', '%s' % line)
+    line = signal_data.split('\t')
     irc_nick = line[0]
     irc_message = line[1]
 

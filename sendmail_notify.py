@@ -100,7 +100,8 @@ def send_message(data, signal, signal_data):
 
     # what about away state?
     if config.get('only_when_away') == 'on':
-        away = weechat.buffer_get_string('localvar_away')
+        current_buffer = weechat.current_buffer()
+        away = weechat.buffer_get_string(current_buffer, 'localvar_away')
         debug_msg('away state |%s|' % away)
 
     line = signal_data.split('\t')
@@ -114,7 +115,7 @@ def send_message(data, signal, signal_data):
     p = Popen(['/usr/sbin/sendmail', '-t'], stdin=PIPE)
     p.communicate(msg.as_string())
 
-    debug_msg('sent |%s|%s|%s|%s|%|' % (config['from'], config['to'],
+    debug_msg('sent |%s|%s|%s|%s|%s|' % (config['from'], config['to'],
                                       signal, irc_nick, irc_message))
     return weechat.WEECHAT_RC_OK
 

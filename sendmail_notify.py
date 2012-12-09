@@ -106,22 +106,28 @@ def send_message(data, signal, signal_data):
             debug_msg('not away, not sending message')
             return weechat.WEECHAT_RC_OK
 
-    # create message body
+    # create message body/subject
     server = weechat.buffer_get_string(current_buffer, 'localvar_server')
     channel = weechat.buffer_get_string(current_buffer, 'localvar_channel')
     line = signal_data.split('\t')
-    body = '.'.join([server, channel]) + ': '.join(line)
+    msg_from = line[0]
+    if signal == 'weechat_pv':
+        body = '%s %s' % (server, ': '.join(line))
+        subject = 'private message from %s' % msg_from
+    elif signal == 'weechat_highlight':
+        body = '%s.%s %s' % (server, channel, ': '.join(line))
+        subject = 'pinged in %s.%s' % (server, channel)
 
     # send mail
     msg = MIMEText(body)
     msg['From'] = config['from']
     msg['To'] = config['to']
-    msg['Subject'] = signal
+    msg['Subject'] = subject
     p = Popen(['/usr/sbin/sendmail', '-t'], stdin=PIPE)
     p.communicate(msg.as_string())
 
     debug_msg('sent |%s|%s|%s|%s|' % (config['from'], config['to'],
-                                      signal, body))
+                                      subject, body))
     return weechat.WEECHAT_RC_OK
 
 

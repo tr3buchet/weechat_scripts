@@ -119,7 +119,7 @@ def send_message(data, msg_buffer, date, tags,
     import time
     debug_msg('data: |%s|' % data)
     debug_msg('msg_buffer: |%s|' % msg_buffer)
-    debug_msg('date: |%s|%s|' % (date, time.time())
+    debug_msg('date: |%s|%s|' % (date, time.time()))
     debug_msg('tags: |%s|' % tags)
     debug_msg('displayed: |%s|' % displayed)
     debug_msg('highlight: |%s|' % highlight)

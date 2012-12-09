@@ -110,6 +110,7 @@ def send_message(data, msg_buffer, date, tags,
     debug_msg('highlight: |%s|' % highlight)
     debug_msg('prefix: |%s|' % prefix)
     debug_msg('message: |%s|' % message)
+    debug_msg('type: |%s|' % weechat.buffer_get_string(msg_buffer, 'localvar_type')
     return weechat.WEECHAT_RC_OK
 
     # return if not enabled

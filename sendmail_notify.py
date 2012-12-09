@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Author: Trey Morris <trey@treymorris.com>
 Homepage: http://github.com/tr3buchet/weechat_plugins

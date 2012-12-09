@@ -115,7 +115,7 @@ def send_message(data, signal, signal_data):
         body = '%s %s' % (server, ': '.join(line))
         subject = 'private message from %s' % msg_from
     elif signal == 'weechat_highlight':
-        body = '%s.%s %s' % (server, channel, ': '.join(line))
+        body = ': '.join(line)
         subject = 'pinged in %s.%s' % (server, channel)
 
     # send mail

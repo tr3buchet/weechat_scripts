@@ -99,16 +99,18 @@ def send_message(data, signal, signal_data):
         return weechat.WEECHAT_RC_OK
 
     # return if only_when_away is on and we aren't away
+    current_buffer = weechat.current_buffer()
     if config.get('only_when_away') == 'on':
-        current_buffer = weechat.current_buffer()
         away = weechat.buffer_get_string(current_buffer, 'localvar_away')
         if not away:
             debug_msg('not away, not sending message')
             return weechat.WEECHAT_RC_OK
 
     # create message body
+    server = weechat.buffer_get_string(current_buffer, 'localvar_server')
+    channel = weechat.buffer_get_string(current_buffer, 'localvar_channel')
     line = signal_data.split('\t')
-    body = ': '.join(line)
+    body = '.'.join([server, channel]) + ': '.join(line)
 
     # send mail
     msg = MIMEText(body)

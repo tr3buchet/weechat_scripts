@@ -146,7 +146,7 @@ def send_message(data, msg_buffer, date, tags,
 
     # create message body/subject
     if buffer_type == 'private':
-        body = '%s: %s' % (server, prefix, message)
+        body = '%s: %s' % (prefix, message)
         subject = 'private message from %s on %s' % (prefix, server)
     elif buffer_type == 'channel':
         body = '%s: %s' % (prefix, message)

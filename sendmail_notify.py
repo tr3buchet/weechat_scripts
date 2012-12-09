@@ -105,18 +105,17 @@ def send_message(data, signal, signal_data):
         debug_msg('away state |%s|' % away)
 
     line = signal_data.split('\t')
-    irc_nick = line[0]
-    irc_message = line[1]
+    body = ': '.join(line)
 
-    msg = MIMEText(signal_data)
+    msg = MIMEText(body)
     msg['From'] = config['from']
     msg['To'] = config['to']
     msg['Subject'] = signal
     p = Popen(['/usr/sbin/sendmail', '-t'], stdin=PIPE)
     p.communicate(msg.as_string())
 
-    debug_msg('sent |%s|%s|%s|%s|%s|' % (config['from'], config['to'],
-                                      signal, irc_nick, irc_message))
+    debug_msg('sent |%s|%s|%s|%s|' % (config['from'], config['to'],
+                                      signal, body))
     return weechat.WEECHAT_RC_OK
 
 

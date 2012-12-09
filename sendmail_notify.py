@@ -82,7 +82,7 @@ for option, default_value in config.iteritems():
 weechat.hook_signal('weechat_highlight', 'send_message', '')
 weechat.hook_signal('weechat_pv', 'send_message', '')
 weechat.hook_config('plugins.var.python.sendmail_notify.*',
-                    'config_callback', '')
+                    'update_config', '')
 
 
 def debug_msg(msg):
@@ -98,15 +98,19 @@ def send_message(data, signal, signal_data):
     if not config.get('enabled') == 'on':
         return weechat.WEECHAT_RC_OK
 
-    # what about away state?
+    # return if only_when_away is on and we aren't away
     if config.get('only_when_away') == 'on':
         current_buffer = weechat.current_buffer()
         away = weechat.buffer_get_string(current_buffer, 'localvar_away')
-        debug_msg('away state |%s|' % away)
+        if not away:
+            debug_msg('not away, not sending message')
+            return weechat.WEECHAT_RC_OK
 
+    # create message body
     line = signal_data.split('\t')
     body = ': '.join(line)
 
+    # send mail
     msg = MIMEText(body)
     msg['From'] = config['from']
     msg['To'] = config['to']
@@ -119,7 +123,7 @@ def send_message(data, signal, signal_data):
     return weechat.WEECHAT_RC_OK
 
 
-def config_callback(data, option, value):
+def update_config(data, option, value):
     """Callback called when a script option is changed.
        Stores the config value so it can be retrieved locally when sending
        messages. (may be an unnecessary optimization)

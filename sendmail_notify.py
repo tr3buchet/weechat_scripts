@@ -105,7 +105,7 @@ def send_message(data, signal, signal_data):
 
     separator = weechat.config_get('weechat.look.prefix_suffix')
     separator = weechat.config_string(separator)
-    line = signal_data.split(separator)
+    line = list(signal_data)
     weechat.prnt('', '%s' % line)
     irc_nick = line[0]
     irc_message = line[1]

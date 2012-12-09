@@ -102,6 +102,10 @@ def send_message(data, signal, signal_data):
         away = weechat.buffer_get_string('localvar_away')
         debug_msg('away state |%s|' % away)
 
+    line = signal_data.split("│")
+    irc_nick = line[0]
+    irc_message = line[1]
+
     msg = MIMEText(signal_data)
     msg['From'] = config['from']
     msg['To'] = config['to']
@@ -109,8 +113,8 @@ def send_message(data, signal, signal_data):
     p = Popen(['/usr/sbin/sendmail', '-t'], stdin=PIPE)
     p.communicate(msg.as_string())
 
-    debug_msg('sent |%s|%s|%s|%s|' % (config['from'], config['to'],
-                                      signal, signal_data))
+    debug_msg('sent |%s|%s|%s|%s|%|' % (config['from'], config['to'],
+                                      signal, irc_nick, irc_message))
     return weechat.WEECHAT_RC_OK
 
 

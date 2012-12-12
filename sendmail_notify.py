@@ -89,13 +89,13 @@ def debug_msg(msg):
         weechat.prnt('', 'sendmail_notify: ' + msg)
 
 
-def is_ping(buffer_type, nick, prefix, highlight):
+def is_ping(buffer_type, prefix, channel, highlight):
     """Determine if a message was a ping
-       private type AND prefix nick isn't your nick = ping
+       private type AND prefix nick is channel name = ping
        channel type AND highlight = ping
        anything else != ping
     """
-    if buffer_type == 'private' and nick != prefix:
+    if buffer_type == 'private' and channel == prefix:
         return True
     if buffer_type == 'channel' and highlight == '1':
         return True
@@ -129,7 +129,7 @@ def send_message(data, msg_buffer, date, tags,
     # query for extra data
     server = weechat.buffer_get_string(msg_buffer, 'localvar_server')
     channel = weechat.buffer_get_string(msg_buffer, 'localvar_channel')
-    nick = weechat.buffer_get_string(msg_buffer, 'localvar_nick')
+    #nick = weechat.buffer_get_string(msg_buffer, 'localvar_nick')
     away_msg = weechat.buffer_get_string(msg_buffer, 'localvar_away')
     buffer_type = weechat.buffer_get_string(msg_buffer, 'localvar_type')
 
@@ -141,7 +141,7 @@ def send_message(data, msg_buffer, date, tags,
             return weechat.WEECHAT_RC_OK
 
     # return unless this was a ping of some sort
-    if not is_ping(buffer_type, nick, prefix, highlight):
+    if not is_ping(buffer_type, prefix, channel, highlight):
         debug_msg('not a a ping, not sending message')
         return weechat.WEECHAT_RC_OK
 

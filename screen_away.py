@@ -24,6 +24,8 @@
 # (this script requires WeeChat 0.3.0 or newer)
 #
 # History:
+# 2013-01-18, Trey Morris <trey@treymorris.com>
+#  version 0.10: check for connected relays as well as screen/tmux
 # 2012-12-29, David Flatz <david@upcs.at>
 #  version 0.9: add option to ignore servers and don't set away status for them
 #               add descriptions to config options
@@ -50,11 +52,11 @@ import weechat as w
 import re
 import os
 
-SCRIPT_NAME    = "screen_away"
-SCRIPT_AUTHOR  = "xt <xt@bash.no>"
-SCRIPT_VERSION = "0.9"
+SCRIPT_NAME = "screen_away"
+SCRIPT_AUTHOR = "xt <xt@bash.no>"
+SCRIPT_VERSION = "0.10"
 SCRIPT_LICENSE = "GPL3"
-SCRIPT_DESC    = "Set away status on screen detach"
+SCRIPT_DESC = "Set away status on screen detach"
 
 settings = {
         'message': ('Detached from screen', 'Away mesage'),
@@ -69,6 +71,7 @@ TIMER = None
 SOCK = None
 AWAY = False
 
+
 def set_timer():
     '''Update timer hook with new interval'''
 
@@ -78,16 +81,18 @@ def set_timer():
     TIMER = w.hook_timer(int(w.config_get_plugin('interval')) * 1000,
             0, 0, "screen_away_timer_cb", '')
 
+
 def screen_away_config_cb(data, option, value):
     if option.endswith(".interval"):
         set_timer()
     return w.WEECHAT_RC_OK
 
+
 def get_servers():
     '''Get the servers that are not away, or were set away by this script'''
 
     ignores = w.config_get_plugin('ignore').split(',')
-    infolist = w.infolist_get('irc_server','','')
+    infolist = w.infolist_get('irc_server', '', '')
     buffers = []
     while w.infolist_next(infolist):
         if not w.infolist_integer(infolist, 'is_connected') == 1 or \
@@ -101,16 +106,36 @@ def get_servers():
     w.infolist_free(infolist)
     return buffers
 
+
+def relay_attached():
+    '''Returns True if relay is attached else False'''
+    # get infolist for relay
+    infolist = w.infolist_get('relay', '', '')
+
+    # only need to look at the first status (current or most recent)
+    w.infolist_next(infolist)
+
+    # status can be connected connecting or disconnected
+    connected = w.infolist_string(infolist, 'status_string') == 'connected'
+
+    # have to free infolist since it isn't done automatically
+    w.infolist_free(infolist)
+
+    return connected
+
+
 def screen_away_timer_cb(buffer, args):
     '''Check if screen is attached, update awayness'''
 
     global AWAY, SOCK
 
     suffix = w.config_get_plugin('away_suffix')
-    attached = os.access(SOCK, os.X_OK) # X bit indicates attached
+    attached = os.access(SOCK, os.X_OK)  # X bit indicates attached
+    relay = relay_attached()
 
-    if attached and AWAY:
-        w.prnt('', '%s: Screen attached. Clearing away status' % SCRIPT_NAME)
+    if (attached or relay) and AWAY:
+        w.prnt('', '%s: Screen/tmux/relay attached. '
+                   'Clearing away status' % SCRIPT_NAME)
         for server, nick in get_servers():
             w.command(server,  "/away")
             if suffix and nick.endswith(suffix):
@@ -120,12 +145,13 @@ def screen_away_timer_cb(buffer, args):
         if w.config_get_plugin("command_on_attach"):
             w.command("", w.config_get_plugin("command_on_attach"))
 
-    elif not attached and not AWAY:
-        w.prnt('', '%s: Screen detached. Setting away status' % SCRIPT_NAME)
+    elif not (attached or relay) and not AWAY:
+        w.prnt('', '%s: Screen/tmux/relay detached. '
+                   'Setting away status' % SCRIPT_NAME)
         for server, nick in get_servers():
             if suffix:
-                w.command(server, "/nick %s%s" % (nick, suffix));
-            w.command(server, "/away %s" % w.config_get_plugin('message'));
+                w.command(server, "/nick %s%s" % (nick, suffix))
+            w.command(server, "/away %s" % w.config_get_plugin('message'))
         AWAY = True
         if w.config_get_plugin("command_on_detach"):
             w.command("", w.config_get_plugin("command_on_detach"))
@@ -152,7 +178,7 @@ if w.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE,
     if not SOCK and 'TMUX' in os.environ.keys():
         # We are running under tmux
         socket_data = os.environ['TMUX']
-        SOCK = socket_data.rsplit(',',2)[0]
+        SOCK = socket_data.rsplit(',', 2)[0]
 
     if SOCK:
         set_timer()

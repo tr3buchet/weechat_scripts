@@ -65,6 +65,7 @@ settings = {
         'command_on_attach': ('', 'Command to execute on attach'),
         'command_on_detach': ('', 'Command to execute on detach'),
         'ignore': ('', 'Comma-separated list of servers to ignore.'),
+        'check_relay': ('no', 'Should relays be considered as well?'),
 }
 
 TIMER = None
@@ -131,9 +132,12 @@ def screen_away_timer_cb(buffer, args):
 
     suffix = w.config_get_plugin('away_suffix')
     attached = os.access(SOCK, os.X_OK)  # X bit indicates attached
-    relay = relay_attached()
 
-    if (attached or relay) and AWAY:
+    if w.config_get_plugin('check_relay') == 'yes':
+        relay = relay_attached()
+        attached = attached or relay
+
+    if attached and AWAY:
         w.prnt('', '%s: Screen/tmux/relay attached. '
                    'Clearing away status' % SCRIPT_NAME)
         for server, nick in get_servers():
@@ -145,7 +149,7 @@ def screen_away_timer_cb(buffer, args):
         if w.config_get_plugin("command_on_attach"):
             w.command("", w.config_get_plugin("command_on_attach"))
 
-    elif not (attached or relay) and not AWAY:
+    elif not attached and not AWAY:
         w.prnt('', '%s: Screen/tmux/relay detached. '
                    'Setting away status' % SCRIPT_NAME)
         for server, nick in get_servers():

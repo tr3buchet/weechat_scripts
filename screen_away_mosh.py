@@ -66,7 +66,7 @@ import datetime, time
 
 SCRIPT_NAME    = "screen_away"
 SCRIPT_AUTHOR  = "xt <xt@bash.no>"
-SCRIPT_VERSION = "0.14"
+SCRIPT_VERSION = "0.133"
 SCRIPT_LICENSE = "GPL3"
 SCRIPT_DESC    = "Set away status on screen detach"
 
@@ -87,6 +87,8 @@ SOCK = None
 AWAY = False
 CONNECTED_RELAY = False
 
+MOSH_STATE = '/tmp/mosh_state'
+
 def set_timer():
     '''Update timer hook with new interval'''
 
@@ -100,6 +102,15 @@ def screen_away_config_cb(data, option, value):
     if option.endswith(".interval"):
         set_timer()
     return w.WEECHAT_RC_OK
+
+
+def mosh_state():
+    try:
+        with open(MOSH_STATE) as f:
+            return f.read()
+    except IOError:
+        return
+
 
 def get_servers():
     '''Get the servers that are not away, or were set away by this script'''
@@ -130,6 +141,9 @@ def screen_away_timer_cb(buffer, args):
     check_relays = not w.config_string_to_boolean(w.config_get_plugin('ignore_relays'))
     suffix = w.config_get_plugin('away_suffix')
     attached = os.access(SOCK, os.X_OK) # X bit indicates attached
+    mosh_state = mosh_state()
+    if attached and mosh_state is not None:
+        attached = mosh_state == 'connected'
 
     # Check wether a client is connected on relay or not
     CONNECTED_RELAY = False

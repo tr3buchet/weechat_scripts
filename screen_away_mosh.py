@@ -103,15 +103,6 @@ def screen_away_config_cb(data, option, value):
         set_timer()
     return w.WEECHAT_RC_OK
 
-
-def mosh_state():
-    try:
-        with open(MOSH_STATE) as f:
-            return f.read()
-    except IOError:
-        return
-
-
 def get_servers():
     '''Get the servers that are not away, or were set away by this script'''
 
@@ -136,6 +127,13 @@ def screen_away_timer_cb(buffer, args):
     '''Check if screen is attached, update awayness'''
 
     global AWAY, SOCK, CONNECTED_RELAY
+
+    def mosh_state():
+        try:
+            with open(MOSH_STATE) as f:
+                return f.read()
+        except IOError:
+            return
 
     set_away = w.config_string_to_boolean(w.config_get_plugin('set_away'))
     check_relays = not w.config_string_to_boolean(w.config_get_plugin('ignore_relays'))
